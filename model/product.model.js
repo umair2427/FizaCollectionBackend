@@ -37,8 +37,35 @@ const Product = {
 
         return db.query(query, [parseInt(pageSize, 10), parseInt(offset, 10)], callback);
     },
+    getAllProducts: (offset, pageSize, callback) => {
+        const query = `
+        SELECT 
+            products.*,
+            categories.name AS categoryName
+            FROM
+                products
+            LEFT JOIN
+            categories ON products.categoryId = categories.id
+            ORDER BY
+            products.productDateTime DESC
+            LIMIT ? OFFSET ?;
+    `;
 
+        return db.query(query, [parseInt(pageSize, 10), parseInt(offset, 10)], callback);
+    },
 
+    getTotalProductCount: () => {
+        return new Promise((resolve, reject) => {
+            const query = `SELECT COUNT(*) AS totalCount FROM products;`;
+            db.query(query, (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result[0].totalCount);
+                }
+            });
+        });
+    },
 
     getProductById: async (id) => {
         try {
@@ -68,6 +95,18 @@ const Product = {
         } catch (error) {
             console.error("Error inserting data:", error);
             return error;
+        }
+    },
+
+    async searchProducts(productName) {
+        try {
+            let query = `SELECT * FROM products WHERE productName = '${productName}'`;
+
+            const rows = await db.query(query);
+            return rows;
+        } catch (error) {
+            console.error("Error searching products:", error);
+            throw error;
         }
     },
 

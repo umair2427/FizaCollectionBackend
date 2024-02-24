@@ -6,7 +6,7 @@ const firebaseMiddleware = require("../middleware/firebaseAuth.middleware");
 
 router.post(
   "/addProduct",
-  // firebaseMiddleware.verifyTokenMiddleware,
+  firebaseMiddleware.verifyTokenMiddleware,
   upload.fields([
     { name: 'productMainImage', maxCount: 1 },
     { name: 'productGalleryImageOne', maxCount: 1 },
@@ -23,12 +23,17 @@ router.get(
   productController.getAllSaleProducts
 );
 router.get(
+  "/allProducts",
+  firebaseMiddleware.verifyTokenMiddleware,
+  productController.getAllProducts
+);
+router.get(
   "/getSingleProduct/:id",
   productController.getProductById
 );
 router.patch(
   "/updateProduct/:id",
-  // firebaseMiddleware.verifyTokenMiddleware,
+  firebaseMiddleware.verifyTokenMiddleware,
   upload.fields([
     { name: 'productMainImage', maxCount: 1 },
     { name: 'productGalleryImageOne', maxCount: 1 },
@@ -38,13 +43,18 @@ router.patch(
 );
 router.delete(
   "/deleteProduct/:id",
-  // firebaseMiddleware.verifyTokenMiddleware,
+  firebaseMiddleware.verifyTokenMiddleware,
   productController.deleteProduct
 );
 
 router.post(
   '/products/delete-multiple',
-  // firebaseMiddleware.verifyTokenMiddleware,
+  firebaseMiddleware.verifyTokenMiddleware,
   productController.deleteMultipleProducts);
+
+router.post(
+  '/search',
+  productController.searchProduct
+)
 
 module.exports = router;

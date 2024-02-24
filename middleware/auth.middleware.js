@@ -5,6 +5,7 @@ const checkIfAuthenticated = (req, res, next) => {
     const idToken = req.headers.authorization;
     if (idToken) {
       const decoded = jwt.verify(idToken, "fizaCollection");
+      console.log(decoded);
       req.userId = decoded.userId;
       next();
     } else {

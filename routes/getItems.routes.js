@@ -12,19 +12,18 @@ router.get(
     itemsController.getColors)
 router.get(
     '/getDeliveryStatus',
-    // firebaseMiddleware.verifyTokenMiddleware, 
+    firebaseMiddleware.verifyTokenMiddleware, 
     itemsController.getDeliveryStatus)
 router.get(
     '/getPaymentMethod',
-    // firebaseMiddleware.verifyTokenMiddleware, 
+    firebaseMiddleware.verifyTokenMiddleware, 
     itemsController.getPaymentMethod)
 router.get(
     '/getStatus',
-    // firebaseMiddleware.verifyTokenMiddleware, 
+    firebaseMiddleware.verifyTokenMiddleware, 
     itemsController.getStatus)
 router.post(
     '/befriend',
-    // firebaseMiddleware.verifyTokenMiddleware, 
     itemsController.beFriend)
 
 module.exports = router;

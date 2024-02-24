@@ -93,24 +93,26 @@ const getAllUserOrderItems = async (req, res) => {
                 o.productId,
                 o.quantity, 
                 o.totalAmount, 
+                o.shipping_id,
                 p.productName,
                 p.productDescription,
                 p.productDateTime,
                 p.productPrice,
                 p.productDiscount,
-                p.productMainImage,
                 p.discountedPrice,
                 s.name As deliveryStatus,
                 c.name As colorName,
-                m.name As methodName
+                m.name As methodName,
+                shi.shipping_address As shipping_address,
+                shi.products As products
             FROM \`order\` o
             JOIN products p ON o.productId = p.id
             JOIN delivery_status s ON o.s_id = s.id
             JOIN colours c ON o.colorId = c.id
-            JOIN payment_method m ON o.paymentMethod = m.id`;
+            JOIN payment_method m ON o.paymentMethod = m.id
+            JOIN shipping_address shi ON o.shipping_id = shi.id`;
 
-        if (req.userId !== undefined) {
-            console.log(req.userId);
+        if (req.userId && req.userId !== undefined) {
             orderQuery += ` WHERE userId = ${req.userId}`;
         }
 

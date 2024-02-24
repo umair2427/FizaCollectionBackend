@@ -9,7 +9,7 @@ router.post(
     orderController.createOrder);
 router.get(
     '/getUserOrders',
-    // authMiddleware.checkIfAuthenticated,
+    authMiddleware.checkIfAuthenticated,
     orderController.getAllUserOrderItems
     );
 

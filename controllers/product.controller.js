@@ -81,6 +81,19 @@ const getBefriendEmails = () => {
     });
   });
 };
+const getLoginUserEmails = () => {
+  return new Promise((resolve, reject) => {
+    const query = 'SELECT email FROM login';
+    db.query(query, (error, results) => {
+      if (error) {
+        reject(error);
+      } else {
+        const emails = results.map(row => row.email);
+        resolve(emails);
+      }
+    });
+  });
+};
 
 async function uploadImages(imageBuffers) {
   try {
@@ -160,6 +173,21 @@ const productController = {
     }
   },
 
+  getAllProducts: async (req, res) => {
+    try {
+      const page = req.query.page || 1;
+      const pageSize = req.query.pageSize || 10;
+      const offset = (page - 1) * pageSize;
+      const products = await Product.getAllProducts(offset, pageSize);
+      const totalCount = await Product.getTotalProductCount();
+
+      res.json({ totalCount, products });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error fetching products" });
+    }
+  },
+
   getProductById: async (req, res) => {
     try {
       const id = req.params.id;
@@ -223,8 +251,11 @@ const productController = {
       const insertedProduct = await Product.addProduct(productData);
       if (discount > 0) {
         const befriendedEmails = await getBefriendEmails();
-        console.log(befriendedEmails);
         for (const email of befriendedEmails) {
+          await sendDiscountAlert(email, req.body.productName, discount, insertedProduct.insertId);
+        }
+        const getLoginUserEmails = await getLoginUserEmails();
+        for (const email of getLoginUserEmails) {
           await sendDiscountAlert(email, req.body.productName, discount, insertedProduct.insertId);
         }
       }
@@ -232,6 +263,20 @@ const productController = {
     } catch (error) {
       console.error('Error:', error);
       res.status(500).json({ error: 'Failed to add Product' });
+    }
+  },
+
+  searchProduct: async (req, res) => {
+    try {
+      const productName = req.body.productName;
+
+
+      const searchResults = await Product.searchProducts(productName);
+
+      res.status(200).json(searchResults);
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ error: 'Failed to search products' });
     }
   },
 
