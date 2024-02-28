@@ -1,8 +1,21 @@
 const db = require("../helper/db");
-const stripe = require('stripe')('your_secret_key');
+
+const getTotalOrders = async () => {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT COUNT(*) AS totalCount FROM \`order\``;
+        db.query(query, (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(result[0].totalCount);
+            }
+        });
+    });
+}
 
 const createOrder = async (req, res) => {
     try {
+        let orderId;
         let orderTime;
 
         if (req.body.orderTime) {
@@ -58,7 +71,7 @@ const createOrder = async (req, res) => {
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     `;
 
-                    await db.query(insertOrderQuery, [
+                    orderId = await db.query(insertOrderQuery, [
                         orderItem.billingId,
                         orderItem.shippingId,
                         orderItem.productId,
@@ -70,6 +83,14 @@ const createOrder = async (req, res) => {
                         orderItem.orderTime,
                         orderItem.s_id,
                     ]);
+
+                    // Emitting notification through socket
+                    const notificationMessage = `New order created by ${firstName} ${lastName}. The Order id is ${orderId.insertId}`;
+                    io.emit('newOrder', notificationMessage);
+
+                    // Save notification in complains table
+                    const complainQuery = `INSERT INTO complains (subject, message, notificationDateTime) VALUES (?, ?, CURRENT_TIMESTAMP)`;
+                    await db.query(complainQuery, ['New Order Created']);
                 } else {
                     console.error(`Product not found for: ${product}`);
                 }
@@ -157,7 +178,7 @@ const getAllOrderItems = async (req, res) => {
         `;
 
         const orders = await db.query(orderQuery, [pageSize, offset]);
-        const totalCount = orders.length
+        const totalCount = await getTotalOrders();
         res.status(200).json({
             message: 'Orders are fetched successfully',
             totalCount,
@@ -210,7 +231,7 @@ const getSingleOrder = async (req, res) => {
                 JOIN login u ON o.userId = u.id`;
 
         const user = await db.query(userQuery);
-        
+
         let shipping_address = `
         SELECT 
         o.shipping_id,
@@ -249,33 +270,33 @@ const getSingleOrder = async (req, res) => {
     }
 }
 
-const deleteOrder= async (req, res) => {
+const deleteOrder = async (req, res) => {
     try {
         const id = req.params.id;
-         await db.query('DELETE FROM \`order\` WHERE shipping_id = ?', [id]);
-         return res.status(200).json({
+        await db.query('DELETE FROM \`order\` WHERE shipping_id = ?', [id]);
+        return res.status(200).json({
             message: "Order is deleted successfully"
-          })
+        })
     } catch (error) {
         return res.status(500).json({
             error: "Something went wrong"
-          })
+        })
     }
 }
 
 const deleteMultipleOrders = async (req, res) => {
     try {
-      const shippingIds = req.body.shippingIds;
-      await db.query('DELETE FROM \`order\` WHERE shipping_id IN (?)', [shippingIds]);
-      return res.status(200).json({
-        message: "Orders are deleted successfully"
-      });
+        const shippingIds = req.body.shippingIds;
+        await db.query('DELETE FROM \`order\` WHERE shipping_id IN (?)', [shippingIds]);
+        return res.status(200).json({
+            message: "Orders are deleted successfully"
+        });
     } catch (error) {
-      return res.status(500).json({
-        error: "Something went wrong"
-      });
+        return res.status(500).json({
+            error: "Something went wrong"
+        });
     }
-  }
+}
 
 module.exports = {
     createOrder,

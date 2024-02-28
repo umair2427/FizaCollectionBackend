@@ -58,8 +58,18 @@ const complains = async (req, res) => {
   }
 };
 
+const getNotifications = async (req, res) => {
+  try {
+    const query = `SELECT * FROM complains`;
+    const notifications = await db.query(query);
+    return res.status(200).json({ message: "Notifications are fetched successfully", notifications })
+  } catch (error) {
 
-
-  module.exports = {
-    complains
   }
+}
+
+
+module.exports = {
+  complains,
+  getNotifications
+}
