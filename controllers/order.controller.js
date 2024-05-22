@@ -90,7 +90,7 @@ const createOrder = async (req, res) => {
 
                     // Save notification in complains table
                     const complainQuery = `INSERT INTO complains (subject, message, notificationDateTime) VALUES (?, ?, CURRENT_TIMESTAMP)`;
-                    await db.query(complainQuery, ['New Order Created']);
+                    await db.query(complainQuery, ['New Order Created', notificationMessage]);
                 } else {
                     console.error(`Product not found for: ${product}`);
                 }
